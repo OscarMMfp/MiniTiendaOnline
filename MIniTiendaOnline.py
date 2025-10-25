@@ -266,6 +266,127 @@ def alternar_activo(usuarios):
 
 
 
+#PARA VENTAS
+def seleccionar_usuario_activo(usuarios):
+    idUsuario = int(input("Introduce el ID del usuario: "))
+    while idUsuario<=0:  # comprobamos que el ID sea mayor que 0
+        print("ID no válido, prueba otra vez")
+        idUsuario=int(input("Introduce el ID del usuario: "))
+    for usuario in usuarios:  # recorremos todos los usuarios
+        if usuario["id"]==idUsuario:  # si el id coincide
+            print(f"Usuario activo: {usuario['nombre']}")
+            return idUsuario  # devolvemos el id del usuario
+    print("Usuario no encontrado.")  # si no se encuentra
+    return None  # devuelve None si no existe
+def anadir_al_carrito(carrito, articulos):
+    idArticulo = int(input("ID del artículo: "))
+    while idArticulo<=0:  # comprobamos que el ID sea válido
+        print("ID no válido, prueba otra vez")
+        idArticulo=int(input("Introduce el ID del artículo: "))
+    articulo = None
+    for articulo2 in articulos:  # buscamos el artículo en la lista
+        if articulo2["id"] == idArticulo and articulo2["activo"]:  # debe estar activo
+            articulo = articulo2
+    if not articulo:  # si no se encuentra
+        print("Artículo no encontrado o inactivo.")
+        return
+    cantidad = int(input("Cantidad: "))  # pedimos cantidad
+    if cantidad < 1:  # cantidad mínima 1
+        print("Cantidad no válida.")
+        return
+    if cantidad > articulo["stock"]:  # no se puede pasar del stock
+        print(f"No hay stock suficiente. Stock disponible: {articulo['stock']}")
+        return
+    carrito.append((idArticulo, cantidad))  # añadimos el producto al carrito
+    print("Artículo añadido al carrito.")
+def quitar_del_carrito(carrito):
+    idArticulo = int(input("ID del artículo que quieres eliminar: "))
+    while idArticulo<=0:  # comprobamos que el ID sea válido
+        print("ID no válido, prueba otra vez")
+        idArticulo=int(input("Introduce el ID del artículo: "))
+    for item in carrito:  # recorremos el carrito
+        if item[0]==idArticulo:  # si el id coincide
+            carrito.remove(item)  # lo quitamos
+            print("Articulo eliminado correctamente")
+    return  # salimos de la función
+    print("Artículo no encontrado")  # este print nunca se ejecuta
+def calcular_total_carrito(carrito,ariticulos):
+    if len(carrito)>0:  # si el carrito no está vacío
+        total=0
+        print("Productos añadidos al carrito:")
+        for idArticulo,cantidad in carrito:  # recorremos los productos del carrito
+            articulo=None
+            for articulo2 in ariticulos:  # buscamos el artículo en la lista
+                if articulo2["id"]==idArticulo:  # si coincide el id
+                    articulo=articulo2
+            if articulo:  # si el artículo existe
+                subtotal=cantidad*articulo["precio"]  # calculamos subtotal
+                total=total+subtotal  # sumamos al total
+                print(articulo["nombre"],",Cantidad: ",cantidad,",Subtotal: ",subtotal)
+        print("Total: ",total)  # mostramos el total final
+        return total  # devolvemos el total
+    else:
+        print("El carrito está vacío")  # si no hay productos
+def confirmar_compra(carrito,articulos,usuario_activo,ventas):
+    if usuario_activo is None:  # no se puede comprar sin usuario
+        print("No hay un usuario activo, selecciona uno antes")
+        return
+    if len(carrito)==0:  # si el carrito está vacío
+        print("El carrito está vacío, introduce productos para poder continuar")
+        return
+    total=calcular_total_carrito(carrito,articulos)  # calculamos el total de la compra
+    for idArticulo, cantidad in carrito:  # comprobamos el stock
+        articulo=None
+        for articulo2 in articulos:
+            if articulo2["id"]==idArticulo:
+                articulo=articulo2
+        if cantidad>articulo["stock"]:  # si no hay stock suficiente
+            print("No hay stock suficiente")
+            return
+    for idArticulo, cantidad in carrito:  # restamos el stock
+        articulo=None
+        for articulo2 in articulos:
+            if articulo2["id"]==idArticulo:
+                articulo=articulo2
+        articulo["stock"]=articulo["stock"]-cantidad  # actualizamos stock
+    idVenta=len(ventas)+1  # creamos un id para la venta
+    items=[]
+    for idArticulo, cantidad in carrito:  # guardamos los artículos comprados
+        articulo=None
+        for articulo2 in articulos:
+            if articulo2["id"]==idArticulo:
+                articulo=articulo2
+        items.append((idArticulo,cantidad,articulo["precio"]))  # añadimos a la lista de items
+    venta={  # creamos el registro de la venta
+        "id_venta":idVenta,
+        "usuario_id":usuario_activo,
+        "items":items,
+        "total":total
+    }
+    ventas.append(venta)  # añadimos la venta a la lista de ventas
+    carrito.clear()  # vaciamos el carrito
+    print("Compra completada")  # mensaje de éxito
+def historial_ventas_por_usuario(ventas,usuario_id):
+    if usuario_id is None:  # si no hay usuario activo
+        print("No hay un usuario activo")
+        return
+    print("Historial de ventas del usuario: ",usuario_id)
+    ventas_usuario=[]
+    for venta in ventas:  # recorremos todas las ventas
+        if venta["usuario_id"]==usuario_id:  # si coinciden los id
+            ventas_usuario.append(venta)  # añadimos a la lista
+    if len(ventas_usuario)==0:  # si no tiene ventas
+        print("El usuario: ",usuario_id," no tiene ventas registradas")
+        return
+    for venta in ventas_usuario:  # mostramos todas las ventas del usuario
+        print("Número venta: ",venta["id_venta"],",Total: ",venta["total"])
+        for idArticulo,cantidad,precio in venta["items"]:  # mostramos los artículos comprados
+            print("Artículo: ",idArticulo,", Cantidad: ",cantidad,", Precio: ",precio)
+
+
+
+
+
 
 #Menú "final"
 #menú principal
@@ -274,14 +395,18 @@ def menu_inicio(articulos,usuarios):
     print("-----------------------")
     print("1. Menú artículos")
     print("2. Menú usuarios")
-    print("3. Salir")
+    print("3. Menú ventas / carrito")
+    print("4. Salir")
 #funcionamiento menú principal
 def menu_principal():
-    articulos=[]
-    usuarios=[]
+    articulos = []
+    usuarios = []
+    ventas = []
+    carrito_actual = []
+    usuario_activo = None
     opcion=0
     #bucle hasta que se elija salir
-    while opcion!=3:
+    while opcion!=4:
         menu_inicio(articulos,usuarios)
         opcion=int(input("Opción: "))
         match opcion:
@@ -290,10 +415,12 @@ def menu_principal():
             case 2:
                 menu_usuarios(usuarios)
             case 3:
-                print("Saliendo...")
+                menu_ventas(usuarios, articulos, ventas, carrito_actual, usuario_activo)
+            case 4:
+                print("Saliendo...")              
             case _:
                 print("Opción no válida")
-#función principal que hace que funcione todo el programa
+#función principal que hace que funcione todo el programa de articulos
 def menu_articulos(articulos):
     opcion=0
     #bucle hasta que se elija salir
@@ -326,7 +453,7 @@ def menu_articulos(articulos):
                 return
             case _:
                 print("Opción no válida")
-#función principal que hace que funcione todo el programa
+#función principal que hace que funcione todo el programa de usuarios
 def menu_usuarios(usuarios):
     opcion=0
     #bucle hasta que se elija salir
@@ -355,6 +482,42 @@ def menu_usuarios(usuarios):
             case 6:
                 alternar_activo(usuarios)
             case 7:
+                print("Volviendo...")
+                return
+            case _:
+                print("Opción no válida")
+#función principal que hace que funcione todo el programa de ventas
+def menu_ventas(usuarios, articulos, ventas, carrito_actual, usuario_activo):
+    opcion=0
+    while opcion!=8:
+        print("-----------------------")
+        print("VENTAS / CARRITO")
+        print("1. Seleccionar usuario activo")
+        print("2. Añadir artículo al carrito")
+        print("3. Quitar artículo del carrito")
+        print("4. Ver carrito")
+        print("5. Confirmar compra")
+        print("6. Historial de ventas por usuario")
+        print("7. Vaciar carrito")
+        print("8. Volver")
+        opcion = int(input("Opción: "))  
+        match opcion:
+            case 1:
+                usuario_activo = seleccionar_usuario_activo(usuarios)
+            case 2:
+                anadir_al_carrito(carrito_actual, articulos)
+            case 3:
+                quitar_del_carrito(carrito_actual)
+            case 4:
+                calcular_total_carrito(carrito_actual, articulos)
+            case 5:
+                confirmar_compra(carrito_actual, articulos, usuario_activo, ventas)
+            case 6:
+                historial_ventas_por_usuario(ventas, usuario_activo)
+            case 7:
+                carrito_actual.clear()
+                print("Carrito vaciado.")
+            case 8:
                 print("Volviendo...")
                 return
             case _:
