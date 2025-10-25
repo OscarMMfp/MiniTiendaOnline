@@ -6,23 +6,24 @@ def generar_id(articulos):
 def crear_articulo(articulos):
     nombre=input("Nombre del artículo: ")
     #comprueba que el nombre no esté repetido
-    if nombre not in articulos:
+    for articulo in articulos:
+        if articulo["nombre"]==nombre:
+            print("Este nombre ya está registrado")
+            return
+    precio=float(input("Precio (>0): "))
+    #ver que el precio sea mayor que 0 (válido)
+    while precio<=0:
+        print("Precio no válido")
         precio=float(input("Precio (>0): "))
-        #ver que el precio sea mayor que 0 (válido)
-        while precio<=0:
-            print("Precio no válido")
-            precio=float(input("Precio (>0): "))
+    stock=int(input("Stock (>=0): "))
+    #ver que el stock no sea negativo
+    while stock<0:
+        print("Stock no válido")
         stock=int(input("Stock (>=0): "))
-        #ver que el stock no sea negativo
-        while stock<0:
-            print("Stock no válido")
-            stock=int(input("Stock (>=0): "))
-        #crear el diccionario del nuevo artículo
-        nuevo={"id":generar_id(articulos),"nombre":nombre,"precio":precio,"stock":stock,"activo":True}
-        articulos.append(nuevo)
-        print("Artículo agregado")
-    else:
-        print("Este producto ya está en el inventario ")
+    #crear el diccionario del nuevo artículo
+    nuevo={"id":generar_id(articulos),"nombre":nombre,"precio":precio,"stock":stock,"activo":True}
+    articulos.append(nuevo)
+    print("Artículo agregado")   
 #función para listar todos los artículos mostrando su información
 def listar_articulos(articulos):
     #comprobar si hay artículos en la lista
@@ -269,35 +270,35 @@ def alternar_activo(usuarios):
 #PARA VENTAS
 def seleccionar_usuario_activo(usuarios):
     idUsuario = int(input("Introduce el ID del usuario: "))
-    while idUsuario<=0:  # comprobamos que el ID sea mayor que 0
+    while idUsuario<=0:  #comprobamos que el ID sea mayor que 0
         print("ID no válido, prueba otra vez")
         idUsuario=int(input("Introduce el ID del usuario: "))
-    for usuario in usuarios:  # recorremos todos los usuarios
-        if usuario["id"]==idUsuario:  # si el id coincide
+    for usuario in usuarios: #recorremos todos los usuarios
+        if usuario["id"]==idUsuario: #si el id coincide
             print(f"Usuario activo: {usuario['nombre']}")
-            return idUsuario  # devolvemos el id del usuario
-    print("Usuario no encontrado.")  # si no se encuentra
-    return None  # devuelve None si no existe
+            return idUsuario  #devolvemos el id del usuario
+    print("Usuario no encontrado.")  #si no se encuentra
+    return None
 def anadir_al_carrito(carrito, articulos):
     idArticulo = int(input("ID del artículo: "))
-    while idArticulo<=0:  # comprobamos que el ID sea válido
+    while idArticulo<=0:  #comprobamos que el ID sea válido
         print("ID no válido, prueba otra vez")
         idArticulo=int(input("Introduce el ID del artículo: "))
     articulo = None
-    for articulo2 in articulos:  # buscamos el artículo en la lista
+    for articulo2 in articulos: #buscamos el artículo en la lista
         if articulo2["id"] == idArticulo and articulo2["activo"]:  # debe estar activo
             articulo = articulo2
-    if not articulo:  # si no se encuentra
+    if not articulo: #si no se encuentra
         print("Artículo no encontrado o inactivo.")
         return
     cantidad = int(input("Cantidad: "))  # pedimos cantidad
     if cantidad < 1:  # cantidad mínima 1
         print("Cantidad no válida.")
         return
-    if cantidad > articulo["stock"]:  # no se puede pasar del stock
+    if cantidad > articulo["stock"]:  #no se puede pasar del stock
         print(f"No hay stock suficiente. Stock disponible: {articulo['stock']}")
         return
-    carrito.append((idArticulo, cantidad))  # añadimos el producto al carrito
+    carrito.append((idArticulo, cantidad))#añadimos el producto al carrito
     print("Artículo añadido al carrito.")
 def quitar_del_carrito(carrito):
     idArticulo = int(input("ID del artículo que quieres eliminar: "))
@@ -305,22 +306,22 @@ def quitar_del_carrito(carrito):
         print("ID no válido, prueba otra vez")
         idArticulo=int(input("Introduce el ID del artículo: "))
     for item in carrito:  # recorremos el carrito
-        if item[0]==idArticulo:  # si el id coincide
-            carrito.remove(item)  # lo quitamos
+        if item[0]==idArticulo:  #si el id coincide
+            carrito.remove(item) #lo quitamos
             print("Articulo eliminado correctamente")
     return  # salimos de la función
     print("Artículo no encontrado")  # este print nunca se ejecuta
-def calcular_total_carrito(carrito,ariticulos):
-    if len(carrito)>0:  # si el carrito no está vacío
+def calcular_total_carrito(carrito,articulos):
+    if len(carrito)>0: # si el carrito no esta vacío
         total=0
         print("Productos añadidos al carrito:")
         for idArticulo,cantidad in carrito:  # recorremos los productos del carrito
             articulo=None
-            for articulo2 in ariticulos:  # buscamos el artículo en la lista
-                if articulo2["id"]==idArticulo:  # si coincide el id
+            for articulo2 in articulos:  #buscamos el artículo en la lista
+                if articulo2["id"]==idArticulo: # si coincide el id
                     articulo=articulo2
-            if articulo:  # si el artículo existe
-                subtotal=cantidad*articulo["precio"]  # calculamos subtotal
+            if articulo: #si el artículo existe
+                subtotal=cantidad*articulo["precio"]#calculamos subtotal
                 total=total+subtotal  # sumamos al total
                 print(articulo["nombre"],",Cantidad: ",cantidad,",Subtotal: ",subtotal)
         print("Total: ",total)  # mostramos el total final
@@ -340,30 +341,30 @@ def confirmar_compra(carrito,articulos,usuario_activo,ventas):
         for articulo2 in articulos:
             if articulo2["id"]==idArticulo:
                 articulo=articulo2
-        if cantidad>articulo["stock"]:  # si no hay stock suficiente
+        if cantidad>articulo["stock"]: #si no hay stock suficiente
             print("No hay stock suficiente")
             return
-    for idArticulo, cantidad in carrito:  # restamos el stock
+    for idArticulo, cantidad in carrito: # restamos el stock
         articulo=None
         for articulo2 in articulos:
             if articulo2["id"]==idArticulo:
                 articulo=articulo2
-        articulo["stock"]=articulo["stock"]-cantidad  # actualizamos stock
-    idVenta=len(ventas)+1  # creamos un id para la venta
+        articulo["stock"]=articulo["stock"]-cantidad  #actualizamos stock
+    idVenta=len(ventas)+1  # Creamos un id para la venta
     items=[]
-    for idArticulo, cantidad in carrito:  # guardamos los artículos comprados
+    for idArticulo, cantidad in carrito: #guardamos los artículos comprados
         articulo=None
         for articulo2 in articulos:
             if articulo2["id"]==idArticulo:
                 articulo=articulo2
-        items.append((idArticulo,cantidad,articulo["precio"]))  # añadimos a la lista de items
-    venta={  # creamos el registro de la venta
+        items.append((idArticulo,cantidad,articulo["precio"]))#añadimos a la lista de items
+    venta={ #creamos el registro de la venta
         "id_venta":idVenta,
         "usuario_id":usuario_activo,
         "items":items,
         "total":total
     }
-    ventas.append(venta)  # añadimos la venta a la lista de ventas
+    ventas.append(venta) #añadimos la venta a la lista de ventas
     carrito.clear()  # vaciamos el carrito
     print("Compra completada")  # mensaje de éxito
 def historial_ventas_por_usuario(ventas,usuario_id):
